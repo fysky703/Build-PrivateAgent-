@@ -1,0 +1,46 @@
+name: Admin Android Build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'apps/admin/**'
+      - '.github/workflows/admin-android.yml'
+  pull_request:
+    paths:
+      - 'apps/admin/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/admin
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: privateagent-admin-release
+          path: apps/admin/build/app/outputs/flutter-apk/app-release.apk
