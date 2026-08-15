@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "agents": {
+      "$agentId": {
+        ".read": "auth != null && (auth.token.admin === true || auth.uid === $agentId)",
+        ".write": "auth != null && (auth.token.admin === true || auth.uid === $agentId)"
+      }
+    },
+    "commands": {
+      "$agentId": {
+        ".read": "auth != null && (auth.token.admin === true || auth.uid === $agentId)",
+        ".write": "auth != null && auth.token.admin === true"
+      }
+    }
+  }
+}
