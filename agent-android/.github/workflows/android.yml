@@ -1,0 +1,66 @@
+name: Build PrivateAgent APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
+
+      - name: Setup Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Verify Project
+        working-directory: .
+        run: |
+          echo "=== Project files ==="
+          find . -maxdepth 4 -type f | sort
+          echo "=== Gradle files ==="
+          find . -name "build.gradle*" -o -name "settings.gradle*"
+
+      - name: Build Debug APK
+        working-directory: .
+        run: |
+          set -o pipefail
+          gradle --version
+          gradle clean assembleDebug --stacktrace --no-daemon
+
+      - name: Find APK
+        if: success()
+        run: |
+          echo "=== APK files ==="
+          find . -type f -name "*.apk" -print
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PrivateAgent-debug-apk
+          path: |
+            **/build/outputs/apk/**/*.apk
+          if-no-files-found: error
